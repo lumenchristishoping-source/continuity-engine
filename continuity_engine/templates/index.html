@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Continuity Engine</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
   <style>
@@ -26,12 +26,14 @@
       --emotion-doubt: #5a5a3a;
       --emotion-motivation: #3a4a6a;
       --emotion-frustration: #7a4a3a;
-      --radius: 16px;
+      --radius: 14px;
       --radius-sm: 8px;
+      --sidebar-w: 260px;
     }
 
     html, body {
       height: 100%;
+      height: 100dvh;
       background: var(--bg);
       color: var(--text);
       font-family: 'DM Mono', monospace;
@@ -40,6 +42,7 @@
       overflow: hidden;
     }
 
+    /* grain overlay */
     body::before {
       content: '';
       position: fixed;
@@ -50,46 +53,59 @@
       opacity: 0.4;
     }
 
+    /* ── ROOT LAYOUT ── */
     .app {
       display: flex;
-      height: 100vh;
+      height: 100dvh;
+      width: 100%;
       position: relative;
       z-index: 1;
+      overflow: hidden;
     }
 
+    /* ── SIDEBAR ── */
     .sidebar {
-      width: 280px;
-      min-width: 280px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 24px 0;
       overflow: hidden;
+      transition: width 0.25s ease, opacity 0.25s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .sidebar-header {
-      padding: 0 24px 24px;
+      padding: 18px 20px 16px;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .logo {
       font-family: 'Syne', sans-serif;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.5px;
       display: flex;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
     }
 
     .logo-dot {
       width: 8px;
       height: 8px;
+      flex-shrink: 0;
       border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
+      box-shadow: 0 0 10px var(--accent);
       animation: pulse 2s ease-in-out infinite;
     }
 
@@ -99,15 +115,16 @@
     }
 
     .logo-sub {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 3px;
       font-weight: 300;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
     .clear-btn {
-      margin-top: 12px;
+      margin-top: 10px;
       width: 100%;
       padding: 7px 0;
       background: none;
@@ -119,91 +136,88 @@
       letter-spacing: 0.5px;
       cursor: pointer;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
-    .clear-btn:hover {
-      background: #1a0a0a;
-      border-color: #7a3030;
-      color: #cc6060;
-    }
+    .clear-btn:hover { background: #1a0a0a; border-color: #7a3030; color: #cc6060; }
+    .clear-btn:active { transform: scale(0.97); }
 
-    .clear-btn:active {
-      transform: scale(0.97);
-    }
-
-    .sidebar-section {
-      padding: 20px 24px 0;
+    /* scrollable sidebar body */
+    .sidebar-body {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
-    .sidebar-section::-webkit-scrollbar { width: 0; }
+    .sidebar-body::-webkit-scrollbar { width: 3px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .sidebar-section {
+      padding: 16px 20px 0;
+    }
+
+    .context-section {
+      padding: 16px 20px 20px;
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+    }
 
     .section-label {
-      font-size: 10px;
+      font-size: 9px;
       letter-spacing: 2px;
       color: var(--text-dim);
       text-transform: uppercase;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       font-family: 'Syne', sans-serif;
     }
 
     #summary-container {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
+      padding-bottom: 16px;
     }
 
     .summary-item {
       background: var(--memory);
       border: 1px solid var(--memory-border);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      font-size: 12px;
+      padding: 9px 11px;
+      font-size: 11px;
       color: var(--text-muted);
       line-height: 1.5;
       transition: border-color 0.2s;
       animation: fadeSlideIn 0.4s ease forwards;
     }
 
-    .summary-item:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
+    .summary-item:hover { border-color: var(--accent); color: var(--text); }
 
     @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .empty-summary {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
       font-style: italic;
-    }
-
-    .context-section {
-      padding: 16px 24px 24px;
-      border-top: 1px solid var(--border);
-      margin-top: auto;
     }
 
     #context-container {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 200px;
-      overflow-y: auto;
+      gap: 5px;
     }
-
-    #context-container::-webkit-scrollbar { width: 0; }
 
     .context-item {
       background: var(--surface2);
       border-left: 2px solid var(--text-dim);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      padding: 8px 10px;
-      font-size: 11px;
+      padding: 7px 9px;
+      font-size: 10px;
       color: var(--text-muted);
       animation: fadeSlideIn 0.3s ease forwards;
       transition: border-color 0.2s;
@@ -214,7 +228,7 @@
 
     .context-meta {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       margin-bottom: 4px;
       align-items: center;
       flex-wrap: wrap;
@@ -222,25 +236,26 @@
 
     .tag {
       font-size: 9px;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
       background: var(--border);
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
     .tag.role-user { background: #1a2030; color: #6a8aaa; }
     .tag.role-assistant { background: #1a1a30; color: #8a7aaa; }
-    .tag.emotion { background: var(--emotion-neutral); color: var(--text-muted); }
     .tag.emotion-stress { background: var(--emotion-stress); color: #ffaaaa; }
     .tag.emotion-excitement { background: var(--emotion-excitement); color: #aaffaa; }
     .tag.emotion-doubt { background: var(--emotion-doubt); color: #ffffaa; }
     .tag.emotion-motivation { background: var(--emotion-motivation); color: #aaaaff; }
     .tag.emotion-frustration { background: var(--emotion-frustration); color: #ffccaa; }
+    .tag.emotion-neutral { background: var(--emotion-neutral); color: var(--text-muted); }
 
     .context-content {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
       overflow: hidden;
       display: -webkit-box;
@@ -248,54 +263,70 @@
       -webkit-box-orient: vertical;
     }
 
+    /* ── MAIN AREA ── */
     .main {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-width: 0;
     }
 
+    /* ── TOPBAR ── */
     .topbar {
-      padding: 16px 28px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 12px;
       background: var(--surface);
+      flex-shrink: 0;
     }
+
+    .toggle-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
 
     .topbar-title {
       font-family: 'Syne', sans-serif;
       font-size: 14px;
       font-weight: 600;
       color: var(--text);
+      flex: 1;
+      min-width: 0;
     }
 
     .memory-indicator {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
+      gap: 7px;
+      font-size: 11px;
       color: var(--text-muted);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border: 1px solid var(--border);
       border-radius: 20px;
       background: var(--surface2);
       transition: all 0.3s ease;
       cursor: default;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .memory-indicator.loading {
-      color: var(--accent2);
-      border-color: var(--accent);
-      background: rgba(124, 106, 247, 0.08);
-    }
-
-    .memory-indicator.done {
-      color: #6aaa8a;
-      border-color: #2a4a3a;
-      background: rgba(106, 170, 138, 0.08);
-    }
+    .memory-indicator.loading { color: var(--accent2); border-color: var(--accent); background: rgba(124,106,247,0.08); }
+    .memory-indicator.done { color: #6aaa8a; border-color: #2a4a3a; background: rgba(106,170,138,0.08); }
 
     .memory-dot {
       width: 6px;
@@ -303,31 +334,28 @@
       border-radius: 50%;
       background: var(--text-dim);
       transition: background 0.3s;
+      flex-shrink: 0;
     }
 
-    .memory-indicator.loading .memory-dot {
-      background: var(--accent);
-      animation: memPulse 0.8s ease-in-out infinite;
-    }
-
-    .memory-indicator.done .memory-dot {
-      background: #6aaa8a;
-      animation: none;
-    }
+    .memory-indicator.loading .memory-dot { background: var(--accent); animation: memPulse 0.8s ease-in-out infinite; }
+    .memory-indicator.done .memory-dot { background: #6aaa8a; animation: none; }
 
     @keyframes memPulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
 
+    /* ── MESSAGES ── */
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 32px 28px;
+      overflow-x: hidden;
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
       scroll-behavior: smooth;
+      min-height: 0;
     }
 
     .messages::-webkit-scrollbar { width: 4px; }
@@ -336,26 +364,27 @@
 
     .message {
       display: flex;
-      gap: 14px;
-      animation: msgIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      gap: 12px;
+      animation: msgIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       opacity: 0;
+      width: 100%;
     }
 
     @keyframes msgIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .message.user { flex-direction: row-reverse; }
 
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       flex-shrink: 0;
       margin-top: 2px;
     }
@@ -373,17 +402,21 @@
       color: var(--text-muted);
     }
 
+    .msg-body { display: flex; flex-direction: column; max-width: 72%; min-width: 0; }
+    .message.user .msg-body { align-items: flex-end; }
+
     .bubble {
-      max-width: 65%;
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-radius: var(--radius);
       line-height: 1.7;
       font-size: 14px;
+      word-break: break-word;
+      white-space: pre-wrap;
     }
 
     .message.user .bubble {
       background: linear-gradient(135deg, rgba(124,106,247,0.15), rgba(167,139,250,0.08));
-      border: 1px solid rgba(124,106,247,0.2);
+      border: 1px solid rgba(124,106,247,0.22);
       color: var(--text);
       border-bottom-right-radius: 4px;
     }
@@ -398,8 +431,9 @@
     .bubble-time {
       font-size: 10px;
       color: var(--text-dim);
-      margin-top: 6px;
+      margin-top: 4px;
       font-style: italic;
+      padding: 0 2px;
     }
 
     .message.user .bubble-time { text-align: right; }
@@ -409,15 +443,15 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       border-bottom-left-radius: 4px;
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: flex;
       gap: 5px;
       align-items: center;
     }
 
     .typing-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: var(--text-dim);
       animation: typingBounce 1.2s ease-in-out infinite;
@@ -428,24 +462,27 @@
 
     @keyframes typingBounce {
       0%, 60%, 100% { transform: translateY(0); background: var(--text-dim); }
-      30% { transform: translateY(-6px); background: var(--accent2); }
+      30% { transform: translateY(-5px); background: var(--accent2); }
     }
 
+    /* ── INPUT AREA ── */
     .input-area {
-      padding: 20px 28px 28px;
+      padding: 14px 16px 18px;
       border-top: 1px solid var(--border);
       background: var(--surface);
+      flex-shrink: 0;
     }
 
     .input-wrap {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-end;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 12px 16px;
-      transition: border-color 0.2s;
+      padding: 10px 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
     }
 
     .input-wrap:focus-within {
@@ -455,6 +492,7 @@
 
     #user-input {
       flex: 1;
+      min-width: 0;
       background: none;
       border: none;
       outline: none;
@@ -463,16 +501,19 @@
       font-size: 14px;
       line-height: 1.6;
       resize: none;
-      max-height: 120px;
-      min-height: 24px;
+      max-height: 140px;
+      min-height: 22px;
+      height: 22px;
+      overflow-y: auto;
     }
 
     #user-input::placeholder { color: var(--text-dim); }
+    #user-input::-webkit-scrollbar { width: 0; }
 
     #send-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
       background: var(--accent);
       border: none;
       cursor: pointer;
@@ -486,48 +527,47 @@
 
     #send-btn:hover { background: var(--accent2); transform: scale(1.05); }
     #send-btn:active { transform: scale(0.95); }
-    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    #send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
     .input-hint {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-dim);
-      margin-top: 8px;
-      padding: 0 4px;
+      margin-top: 7px;
+      padding: 0 2px;
     }
 
+    /* ── EMPTY STATE ── */
     .empty-state {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
       color: var(--text-dim);
       font-family: 'Syne', sans-serif;
+      pointer-events: none;
+      user-select: none;
     }
 
-    .empty-icon {
-      font-size: 32px;
-      opacity: 0.4;
-    }
+    .empty-icon { font-size: 30px; opacity: 0.35; }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--text-muted); }
+    .empty-sub { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 300; text-align: center; }
 
-    .empty-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .empty-sub {
-      font-size: 13px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 300;
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      :root { --sidebar-w: 80vw; }
+      .sidebar { position: absolute; top: 0; left: 0; height: 100%; z-index: 10; }
+      .sidebar.collapsed { width: 0; }
+      .mem-label { display: none; }
     }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <aside class="sidebar">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
         <div class="logo-dot"></div>
@@ -537,27 +577,37 @@
       <button class="clear-btn" id="clear-btn">⌫ clear memory</button>
     </div>
 
-    <div class="sidebar-section">
-      <div class="section-label">Memory Summary</div>
-      <div id="summary-container">
-        <div class="empty-summary">No memory yet — start talking.</div>
+    <div class="sidebar-body">
+      <div class="sidebar-section">
+        <div class="section-label">Memory Summary</div>
+        <div id="summary-container">
+          <div class="empty-summary">No memory yet — start talking.</div>
+        </div>
       </div>
-    </div>
 
-    <div class="context-section">
-      <div class="section-label" style="margin-bottom:12px;">Last Retrieved</div>
-      <div id="context-container">
-        <div class="empty-summary">Context will appear here.</div>
+      <div class="context-section">
+        <div class="section-label">Last Retrieved</div>
+        <div id="context-container">
+          <div class="empty-summary">Context will appear here.</div>
+        </div>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN -->
   <main class="main">
     <div class="topbar">
+      <button class="toggle-btn" id="toggle-btn" title="Toggle sidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
       <div class="topbar-title">Chat</div>
       <div class="memory-indicator" id="mem-indicator">
         <div class="memory-dot"></div>
-        <span id="mem-text">Ready</span>
+        <span id="mem-text" class="mem-label">Ready</span>
       </div>
     </div>
 
@@ -565,7 +615,7 @@
       <div class="empty-state" id="empty-state">
         <div class="empty-icon">🧠</div>
         <div class="empty-title">Continuity Engine</div>
-        <div class="empty-sub">Every message remembered. Every pattern tracked.</div>
+        <div class="empty-sub">Every message remembered.<br>Every pattern tracked.</div>
       </div>
     </div>
 
@@ -575,11 +625,13 @@
           id="user-input"
           placeholder="Say something..."
           rows="1"
+          autocomplete="off"
+          spellcheck="true"
         ></textarea>
-        <button id="send-btn" title="Send">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        <button id="send-btn" title="Send (Enter)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
         </button>
       </div>
@@ -590,22 +642,32 @@
 </div>
 
 <script>
-  const messagesEl = document.getElementById('messages');
-  const inputEl = document.getElementById('user-input');
-  const sendBtn = document.getElementById('send-btn');
+  const messagesEl   = document.getElementById('messages');
+  const inputEl      = document.getElementById('user-input');
+  const sendBtn      = document.getElementById('send-btn');
   const memIndicator = document.getElementById('mem-indicator');
-  const memText = document.getElementById('mem-text');
-  const summaryContainer = document.getElementById('summary-container');
-  const contextContainer = document.getElementById('context-container');
-  const emptyState = document.getElementById('empty-state');
+  const memText      = document.getElementById('mem-text');
+  const summaryEl    = document.getElementById('summary-container');
+  const contextEl    = document.getElementById('context-container');
+  const emptyState   = document.getElementById('empty-state');
+  const sidebar      = document.getElementById('sidebar');
+  const toggleBtn    = document.getElementById('toggle-btn');
+  const clearBtn     = document.getElementById('clear-btn');
 
   let isLoading = false;
 
-  inputEl.addEventListener('input', () => {
-    inputEl.style.height = 'auto';
-    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  /* ── SIDEBAR TOGGLE ── */
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
   });
 
+  /* ── AUTO-RESIZE TEXTAREA ── */
+  function resizeInput() {
+    inputEl.style.height = '22px';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+  }
+
+  inputEl.addEventListener('input', resizeInput);
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -615,123 +677,126 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
+  /* ── MEMORY INDICATOR ── */
+  let doneTimer = null;
   function setMemoryState(state) {
+    clearTimeout(doneTimer);
     memIndicator.className = 'memory-indicator ' + state;
-    if (state === 'loading') memText.textContent = 'Retrieving memory...';
-    else if (state === 'done') memText.textContent = 'Memory retrieved';
-    else memText.textContent = 'Ready';
-
-    if (state === 'done') {
-      setTimeout(() => setMemoryState(''), 2500);
+    if (state === 'loading') memText.textContent = 'Retrieving...';
+    else if (state === 'done') {
+      memText.textContent = 'Retrieved';
+      doneTimer = setTimeout(() => setMemoryState(''), 2500);
+    } else {
+      memText.textContent = 'Ready';
     }
   }
 
+  /* ── ADD MESSAGE ── */
   function getTime() {
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   function addMessage(role, content) {
-    if (emptyState) emptyState.style.display = 'none';
+    emptyState.style.display = 'none';
 
-    const msg = document.createElement('div');
+    const msg    = document.createElement('div');
     msg.className = `message ${role}`;
 
-    const avatar = document.createElement('div');
+    const avatar  = document.createElement('div');
     avatar.className = `avatar ${role === 'user' ? 'user-av' : 'ai-av'}`;
     avatar.textContent = role === 'user' ? 'U' : '◈';
 
-    const right = document.createElement('div');
+    const body   = document.createElement('div');
+    body.className = 'msg-body';
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     bubble.textContent = content;
 
-    const time = document.createElement('div');
+    const time   = document.createElement('div');
     time.className = 'bubble-time';
     time.textContent = getTime();
 
-    right.appendChild(bubble);
-    right.appendChild(time);
+    body.appendChild(bubble);
+    body.appendChild(time);
     msg.appendChild(avatar);
-    msg.appendChild(right);
+    msg.appendChild(body);
     messagesEl.appendChild(msg);
     messagesEl.scrollTop = messagesEl.scrollHeight;
-    return msg;
   }
 
   function addTypingIndicator() {
-    const msg = document.createElement('div');
+    const msg    = document.createElement('div');
     msg.className = 'message ai';
-    msg.id = 'typing-indicator';
+    msg.id       = 'typing';
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar ai-av';
     avatar.textContent = '◈';
 
+    const body   = document.createElement('div');
+    body.className = 'msg-body';
+
     const bubble = document.createElement('div');
     bubble.className = 'typing-bubble';
     bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
 
+    body.appendChild(bubble);
     msg.appendChild(avatar);
-    msg.appendChild(bubble);
+    msg.appendChild(body);
     messagesEl.appendChild(msg);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
   function removeTypingIndicator() {
-    const el = document.getElementById('typing-indicator');
+    const el = document.getElementById('typing');
     if (el) el.remove();
   }
 
-  function updateSummary(summaryLines) {
-    summaryContainer.innerHTML = '';
-    if (!summaryLines || summaryLines.length === 0) {
-      summaryContainer.innerHTML = '<div class="empty-summary">No memory yet.</div>';
+  /* ── UPDATE SIDEBAR ── */
+  function updateSummary(lines) {
+    summaryEl.innerHTML = '';
+    if (!lines || !lines.length) {
+      summaryEl.innerHTML = '<div class="empty-summary">No memory yet.</div>';
       return;
     }
-    summaryLines.forEach((line, i) => {
-      const item = document.createElement('div');
-      item.className = 'summary-item';
-      item.style.animationDelay = (i * 0.05) + 's';
-      item.textContent = line;
-      summaryContainer.appendChild(item);
+    lines.forEach((line, i) => {
+      const d = document.createElement('div');
+      d.className = 'summary-item';
+      d.style.animationDelay = (i * 0.05) + 's';
+      d.textContent = line;
+      summaryEl.appendChild(d);
     });
   }
 
-  function updateContext(contextItems) {
-    contextContainer.innerHTML = '';
-    if (!contextItems || contextItems.length === 0) {
-      contextContainer.innerHTML = '<div class="empty-summary">No context retrieved.</div>';
+  function updateContext(items) {
+    contextEl.innerHTML = '';
+    if (!items || !items.length) {
+      contextEl.innerHTML = '<div class="empty-summary">No context retrieved.</div>';
       return;
     }
-
-    contextItems.slice(0, 5).forEach((item, i) => {
-      const el = document.createElement('div');
+    items.slice(0, 5).forEach((item, i) => {
+      const el   = document.createElement('div');
       el.className = 'context-item';
       el.style.animationDelay = (i * 0.04) + 's';
 
-      const imp = item.importance || 1;
+      const imp  = item.importance || 1;
       el.dataset.importance = imp >= 6 ? 'high' : imp >= 3 ? 'mid' : 'low';
 
       const meta = document.createElement('div');
       meta.className = 'context-meta';
 
-      const roleTag = document.createElement('span');
-      roleTag.className = `tag role-${item.role}`;
-      roleTag.textContent = item.role;
+      const mkTag = (cls, text) => {
+        const s = document.createElement('span');
+        s.className = 'tag ' + cls;
+        s.textContent = text;
+        return s;
+      };
 
-      const emotionTag = document.createElement('span');
       const emo = item.emotion || 'neutral';
-      emotionTag.className = `tag emotion emotion-${emo}`;
-      emotionTag.textContent = emo;
-
-      const impTag = document.createElement('span');
-      impTag.className = 'tag';
-      impTag.textContent = `★${imp}`;
-
-      meta.appendChild(roleTag);
-      meta.appendChild(emotionTag);
-      meta.appendChild(impTag);
+      meta.appendChild(mkTag('role-' + item.role, item.role));
+      meta.appendChild(mkTag('emotion-' + emo, emo));
+      meta.appendChild(mkTag('', '★' + imp));
 
       const content = document.createElement('div');
       content.className = 'context-content';
@@ -739,19 +804,24 @@
 
       el.appendChild(meta);
       el.appendChild(content);
-      contextContainer.appendChild(el);
+      contextEl.appendChild(el);
     });
   }
 
-  document.getElementById('clear-btn').addEventListener('click', async () => {
+  /* ── CLEAR MEMORY ── */
+  clearBtn.addEventListener('click', async () => {
     if (!confirm('Wipe all memory? This cannot be undone.')) return;
-    await fetch('/clear', { method: 'POST' });
-    summaryContainer.innerHTML = '<div class="empty-summary">No memory yet — start talking.</div>';
-    contextContainer.innerHTML = '<div class="empty-summary">Context will appear here.</div>';
+    try {
+      await fetch('/clear', { method: 'POST' });
+    } catch (e) { /* silent */ }
+    summaryEl.innerHTML  = '<div class="empty-summary">No memory yet — start talking.</div>';
+    contextEl.innerHTML  = '<div class="empty-summary">Context will appear here.</div>';
     messagesEl.innerHTML = '';
-    if (emptyState) emptyState.style.display = '';
+    emptyState.style.display = '';
+    messagesEl.appendChild(emptyState);
   });
 
+  /* ── SEND MESSAGE ── */
   async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text || isLoading) return;
@@ -759,34 +829,35 @@
     isLoading = true;
     sendBtn.disabled = true;
     inputEl.value = '';
-    inputEl.style.height = 'auto';
+    inputEl.style.height = '22px';
 
     addMessage('user', text);
     setMemoryState('loading');
 
-    setTimeout(() => {
-      addTypingIndicator();
-    }, 600);
+    const typingTimer = setTimeout(addTypingIndicator, 500);
 
     try {
-      const res = await fetch('/chat', {
-        method: 'POST',
+      const res  = await fetch('/chat', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body:    JSON.stringify({ message: text })
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error('Server error ' + res.status);
 
-      setMemoryState('done');
+      const data = await res.json();
+      clearTimeout(typingTimer);
       removeTypingIndicator();
-      addMessage('ai', data.response);
+      setMemoryState('done');
+      addMessage('ai', data.response || '[No response]');
       updateSummary(data.summary);
       updateContext(data.context);
 
     } catch (err) {
-      setMemoryState('');
+      clearTimeout(typingTimer);
       removeTypingIndicator();
-      addMessage('ai', '[Error connecting to server]');
+      setMemoryState('');
+      addMessage('ai', '[Error: ' + err.message + ']');
     }
 
     isLoading = false;
