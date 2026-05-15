@@ -74,6 +74,14 @@ def chat():
     })
 
 
+@app.route("/clear", methods=["POST"])
+def clear_memory():
+    memory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory.json")
+    with open(memory_path, "w") as f:
+        f.write("[]")
+    return jsonify({"success": True})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=False)

@@ -106,6 +106,31 @@
       letter-spacing: 0.5px;
     }
 
+    .clear-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 7px 0;
+      background: none;
+      border: 1px solid #3a1a1a;
+      border-radius: var(--radius-sm);
+      color: #7a4040;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background: #1a0a0a;
+      border-color: #7a3030;
+      color: #cc6060;
+    }
+
+    .clear-btn:active {
+      transform: scale(0.97);
+    }
+
     .sidebar-section {
       padding: 20px 24px 0;
       flex: 1;
@@ -509,6 +534,7 @@
         Continuity
       </div>
       <div class="logo-sub">temporal memory engine</div>
+      <button class="clear-btn" id="clear-btn">⌫ clear memory</button>
     </div>
 
     <div class="sidebar-section">
@@ -716,6 +742,15 @@
       contextContainer.appendChild(el);
     });
   }
+
+  document.getElementById('clear-btn').addEventListener('click', async () => {
+    if (!confirm('Wipe all memory? This cannot be undone.')) return;
+    await fetch('/clear', { method: 'POST' });
+    summaryContainer.innerHTML = '<div class="empty-summary">No memory yet — start talking.</div>';
+    contextContainer.innerHTML = '<div class="empty-summary">Context will appear here.</div>';
+    messagesEl.innerHTML = '';
+    if (emptyState) emptyState.style.display = '';
+  });
 
   async function sendMessage() {
     const text = inputEl.value.trim();
