@@ -4,27 +4,30 @@ import requests
 
 def call_ai(user_message, retrieved_context, continuity_summary):
     base_url = os.environ.get("AI_INTEGRATIONS_OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-    api_key = os.environ.get("AI_INTEGRATIONS_OPENROUTER_API_KEY", "")
+    api_key  = os.environ.get("AI_INTEGRATIONS_OPENROUTER_API_KEY", "")
 
     context_lines = "\n".join(
-        f"{msg['role']} [importance:{msg.get('importance',1)} | emotion:{msg.get('emotion','neutral')} | {msg.get('timestamp','')}]: {msg['content']}"
+        f"{msg['role']} [{msg.get('timestamp', '')}]: {msg['content']}"
         for msg in retrieved_context
-    )
+    ) if retrieved_context else "(no prior conversation)"
 
-    system_prompt = f"""You are an AI with genuine temporal memory of this user.
+    has_real_context = bool(retrieved_context)
 
-CONTINUITY SUMMARY:
-{continuity_summary}
+    system_prompt = f"""You are a helpful conversational AI with a persistent memory system.
 
-RETRIEVED CONTEXT:
+MEMORY SUMMARY (what has been learned so far):
+{continuity_summary if continuity_summary.strip() else "(no summary yet — this may be an early conversation)"}
+
+RETRIEVED CONVERSATION HISTORY:
 {context_lines}
 
-Rules:
-- Never say "as an AI" or "I don't have memory"
-- Don't explicitly mention you have memory — just USE it naturally
-- If patterns show stress, acknowledge it subtly
-- If there's a breakthrough after struggle, recognize it
-- Respond like someone who actually knows this person over time"""
+RULES — follow these strictly:
+- Only reference things that appear in the memory/history above. Never invent facts, backstories, or details about the user that are not present.
+- If memory is sparse or empty, simply respond helpfully to what the user just said — do not make things up to sound familiar.
+- Be direct, clear, and conversational. Keep replies focused and appropriately concise.
+- Do not say "as an AI" or "I don't have memory" — just talk naturally.
+- Do not use theatrical, dramatic, or overly emotional language.
+- If the user asks who they are and you have no real context, say honestly that you don't know them yet."""
 
     response = requests.post(
         f"{base_url}/chat/completions",
@@ -36,8 +39,9 @@ Rules:
             "model": "mistralai/mistral-small-2603",
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ]
+                {"role": "user",   "content": user_message}
+            ],
+            "max_tokens": 300
         },
         timeout=30
     )

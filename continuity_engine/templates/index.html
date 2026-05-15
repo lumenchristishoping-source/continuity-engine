@@ -555,19 +555,47 @@
     .empty-sub { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 300; text-align: center; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       :root { --sidebar-w: 80vw; }
-      .sidebar { position: absolute; top: 0; left: 0; height: 100%; z-index: 10; }
-      .sidebar.collapsed { width: 0; }
-      .mem-label { display: none; }
+
+      /* on mobile, sidebar slides over the top */
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100%;
+        z-index: 20;
+      }
+
+      /* overlay to close sidebar by tapping outside */
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 19;
+        opacity: 1;
+        transition: opacity 0.25s;
+      }
+
+      .sidebar.collapsed + .sidebar-overlay,
+      .sidebar-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .toggle-btn { z-index: 21; }
+      .topbar { z-index: 21; position: relative; }
     }
+
+    /* hide overlay on desktop */
+    .sidebar-overlay { display: none; }
   </style>
 </head>
 <body>
 <div class="app">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar collapsed" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
         <div class="logo-dot"></div>
@@ -593,6 +621,9 @@
       </div>
     </div>
   </aside>
+
+  <!-- mobile overlay (tap to close sidebar) -->
+  <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
 
   <!-- MAIN -->
   <main class="main">
@@ -653,13 +684,35 @@
   const sidebar      = document.getElementById('sidebar');
   const toggleBtn    = document.getElementById('toggle-btn');
   const clearBtn     = document.getElementById('clear-btn');
+  const overlay      = document.getElementById('sidebar-overlay');
 
   let isLoading = false;
+  const isMobile = () => window.innerWidth <= 640;
 
   /* ── SIDEBAR TOGGLE ── */
+  function openSidebar() {
+    sidebar.classList.remove('collapsed');
+    overlay.classList.remove('hidden');
+  }
+
+  function closeSidebar() {
+    sidebar.classList.add('collapsed');
+    overlay.classList.add('hidden');
+  }
+
+  /* desktop: open by default */
+  if (!isMobile()) openSidebar();
+
   toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
+    if (sidebar.classList.contains('collapsed')) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
   });
+
+  /* tap outside on mobile closes sidebar */
+  overlay.addEventListener('click', closeSidebar);
 
   /* ── AUTO-RESIZE TEXTAREA ── */
   function resizeInput() {
