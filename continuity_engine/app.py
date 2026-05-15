@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import sys
 import os
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -52,10 +53,12 @@ def chat():
             "content": msg["content"]
         })
 
+    t0 = time.time()
     try:
         ai_response = call_ai(user_input, context, summary)
     except Exception as e:
         ai_response = f"[AI error: {e}]"
+    recall_ms = round((time.time() - t0) * 1000)
 
     save_message("assistant", ai_response)
 
@@ -66,11 +69,13 @@ def chat():
     ]
 
     return jsonify({
-        "response": ai_response,
-        "context": context_items,
-        "summary": summary_lines,
-        "emotion": current_emotion,
-        "topics": current_topics
+        "response":     ai_response,
+        "context":      context_items,
+        "summary":      summary_lines,
+        "emotion":      current_emotion,
+        "topics":       current_topics,
+        "memory_used":  bool(context_items),
+        "recall_ms":    recall_ms,
     })
 
 

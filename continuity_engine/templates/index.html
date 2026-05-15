@@ -570,6 +570,113 @@
     .empty-title { font-size: 15px; font-weight: 600; color: var(--text-muted); }
     .empty-sub { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 300; text-align: center; }
 
+    /* ── RECALL BAR ── */
+    .recall-bar {
+      margin-top: 5px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(124,106,247,0.18);
+      background: rgba(8,8,18,0.7);
+      overflow: hidden;
+      animation: fadeSlideIn 0.4s ease forwards;
+    }
+
+    .recall-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 10px;
+      color: #9a8bff;
+      user-select: none;
+      transition: background 0.15s;
+      letter-spacing: 0.3px;
+    }
+
+    .recall-header:hover { background: rgba(124,106,247,0.1); }
+
+    .recall-pulse {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      animation: memPulse 1.5s ease-in-out infinite;
+    }
+
+    .recall-label { font-weight: 400; }
+
+    .recall-time {
+      color: var(--text-dim);
+      font-size: 9px;
+      margin-left: 2px;
+    }
+
+    .recall-chevron {
+      margin-left: auto;
+      color: var(--text-dim);
+      font-size: 10px;
+      transition: transform 0.2s;
+      line-height: 1;
+    }
+
+    .recall-bar.open .recall-chevron { transform: rotate(180deg); }
+
+    .recall-body {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 10px;
+      border-top: 1px solid rgba(124,106,247,0.1);
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .recall-body::-webkit-scrollbar { width: 2px; }
+    .recall-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .recall-bar.open .recall-body { display: flex; }
+
+    .recall-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 6px;
+      align-items: start;
+      font-size: 10px;
+      line-height: 1.4;
+      padding: 5px 7px;
+      border-radius: 4px;
+      background: var(--surface);
+      border-left: 2px solid var(--text-dim);
+    }
+
+    .recall-item[data-role="user"]      { border-left-color: #5a72cc; }
+    .recall-item[data-role="assistant"] { border-left-color: var(--accent); }
+
+    .recall-role {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      padding-top: 1px;
+      white-space: nowrap;
+    }
+
+    .recall-text {
+      color: var(--text-muted);
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .recall-ts {
+      font-size: 8px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      padding-top: 1px;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       :root { --sidebar-w: 80vw; }
@@ -769,7 +876,56 @@
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  function addMessage(role, content) {
+  function buildRecallBar(contextItems, recallMs) {
+    const secs = (recallMs / 1000).toFixed(1);
+    const timeLabel = recallMs < 1000 ? recallMs + 'ms' : secs + 's';
+
+    const bar = document.createElement('div');
+    bar.className = 'recall-bar';
+
+    const header = document.createElement('div');
+    header.className = 'recall-header';
+    header.innerHTML =
+      '<div class="recall-pulse"></div>' +
+      '<span class="recall-label">Remembering</span>' +
+      '<span class="recall-time">· recalled in ' + timeLabel + '</span>' +
+      '<span class="recall-chevron">▾</span>';
+
+    const body = document.createElement('div');
+    body.className = 'recall-body';
+
+    contextItems.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'recall-item';
+      row.dataset.role = item.role;
+
+      const ts   = (item.timestamp || '').replace('T', ' ').slice(0, 16);
+      const role = document.createElement('span');
+      role.className = 'recall-role';
+      role.textContent = item.role === 'user' ? 'you' : 'cogen';
+
+      const text = document.createElement('span');
+      text.className = 'recall-text';
+      text.textContent = item.content;
+
+      const tsEl = document.createElement('span');
+      tsEl.className = 'recall-ts';
+      tsEl.textContent = ts;
+
+      row.appendChild(role);
+      row.appendChild(text);
+      row.appendChild(tsEl);
+      body.appendChild(row);
+    });
+
+    header.addEventListener('click', () => bar.classList.toggle('open'));
+
+    bar.appendChild(header);
+    bar.appendChild(body);
+    return bar;
+  }
+
+  function addMessage(role, content, recallData) {
     emptyState.style.display = 'none';
 
     const msg    = document.createElement('div');
@@ -792,6 +948,11 @@
 
     body.appendChild(bubble);
     body.appendChild(time);
+
+    if (role === 'ai' && recallData && recallData.context && recallData.context.length > 0) {
+      body.appendChild(buildRecallBar(recallData.context, recallData.recallMs || 0));
+    }
+
     msg.appendChild(avatar);
     msg.appendChild(body);
     messagesEl.appendChild(msg);
@@ -930,7 +1091,10 @@
       clearTimeout(typingTimer);
       removeTypingIndicator();
       setMemoryState('done');
-      addMessage('ai', data.response || '[No response]');
+      addMessage('ai', data.response || '[No response]', {
+        context:  data.context,
+        recallMs: data.recall_ms,
+      });
       updateSummary(data.summary);
       updateContext(data.context);
 

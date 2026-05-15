@@ -1,5 +1,12 @@
 import os
+import time
 import requests
+
+
+MODELS = [
+    "anthropic/claude-3-haiku-20240307",
+    "openai/gpt-4o-mini",
+]
 
 
 def call_ai(user_message, retrieved_context, continuity_summary):
@@ -13,44 +20,52 @@ def call_ai(user_message, retrieved_context, continuity_summary):
             f"[{msg.get('timestamp', '?')}] {msg['role'].upper()}: {msg['content']}"
             for msg in retrieved_context
         )
-        memory_block = f"""CONVERSATION HISTORY (chronological — treat this as your actual memory of this user):
-{context_lines}
-
-PATTERN SUMMARY:
-{continuity_summary.strip() if continuity_summary.strip() else "(patterns still forming)"}"""
+        memory_block = (
+            "CONVERSATION HISTORY (your actual memory — treat it as real):\n"
+            + context_lines
+            + "\n\nPATTERN SUMMARY:\n"
+            + (continuity_summary.strip() if continuity_summary.strip() else "(patterns still forming)")
+        )
     else:
         memory_block = "MEMORY: Empty — this is your very first exchange with this person."
 
-    system_prompt = f"""You are Cogen, a conversational AI with genuine persistent memory. Every message is saved and recalled across sessions.
+    system_prompt = f"""You are Cogen, a conversational AI with genuine persistent memory. Every message the user sends is saved with a timestamp and recalled across sessions.
 
 {memory_block}
 
-STRICT RULES:
-1. Only use facts that appear in the conversation history above. Never invent details about the user.
+STRICT RULES — never break these:
+1. Only use facts that appear in the conversation history above. Never invent or assume anything about the user.
 2. If memory is empty, respond naturally to what the user just said — do not pretend to know them.
-3. Use the conversation history like a real memory: if someone told you their name two messages ago, you know it. If they named you, that is your name.
-4. When asked about dates or timing ("when did I say X"), check the timestamps in the history and answer from them.
-5. Be natural and conversational. Short replies are fine. Do not repeat yourself unnecessarily.
-6. Do not say "as an AI", "I don't have memory", or any disclaimer — just respond like someone who actually remembers.
-7. Do not use theatrical or overly emotional language."""
+3. Treat the conversation history as real memory: if the user told you their name, you know it; if they named you, that is your name.
+4. When asked about dates or timing, check the timestamps in the history and answer from them accurately.
+5. Be natural and conversational. Keep replies focused. Short replies are fine.
+6. Never say "as an AI", "I don't have memory", or any similar disclaimer.
+7. No theatrical, dramatic, or overly emotional language."""
 
-    response = requests.post(
-        f"{base_url}/chat/completions",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": "mistralai/mistral-small-2603",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_message}
-            ],
-            "max_tokens": 350,
-            "temperature": 0.4
-        },
-        timeout=30
-    )
+    last_err = None
+    for model in MODELS:
+        try:
+            resp = requests.post(
+                f"{base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": user_message},
+                    ],
+                    "max_tokens": 400,
+                    "temperature": 0.4,
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            last_err = e
+            continue
 
-    response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"]
+    raise RuntimeError(f"All models failed. Last error: {last_err}")
