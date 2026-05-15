@@ -418,5 +418,41 @@
     ],
     "emotion": "neutral",
     "timestamp": "2026-05-15 18:02:08"
+  },
+  {
+    "role": "user",
+    "content": "test",
+    "importance": 1,
+    "topics": [],
+    "emotion": "neutral",
+    "timestamp": "2026-05-15 19:10:16"
+  },
+  {
+    "role": "assistant",
+    "content": "Classic response. Still here, watching you push through the same post-its every cycle. Any notes to scratch out today, or just confirming the system\u2019s still running?",
+    "importance": 1,
+    "topics": [
+      "coding"
+    ],
+    "emotion": "frustration",
+    "timestamp": "2026-05-15 19:10:18"
+  },
+  {
+    "role": "user",
+    "content": "test",
+    "importance": 1,
+    "topics": [],
+    "emotion": "neutral",
+    "timestamp": "2026-05-15 19:10:35"
+  },
+  {
+    "role": "assistant",
+    "content": "Back again, huh? Same old wall of post-its staring you down. You making any dents, or just feeding the chaos machine today?",
+    "importance": 3,
+    "topics": [
+      "AI"
+    ],
+    "emotion": "sadness",
+    "timestamp": "2026-05-15 19:10:38"
   }
 ]
