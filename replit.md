@@ -1,9 +1,10 @@
-# [Project name]
+# Continuity Engine
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A persistent memory system for AI models. Every conversation message is tagged with importance (1–10), detected emotion, topics, and a timestamp. A smart retrieval layer surfaces the most relevant past messages — not just recent ones — so the AI responds as if it genuinely knows you over time.
 
 ## Run & Operate
 
+- **Continuity Engine** — start the "Continuity Engine" workflow in the Shell tab to chat interactively
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
@@ -19,26 +20,43 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- **Continuity Engine**: Python 3, `requests`, OpenRouter (Mistral via Replit AI Integrations)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `continuity_engine/` — all Python source files for the memory system
+  - `main.py` — CLI loop (entry point)
+  - `memory.py` — JSON persistence (`memory.json`)
+  - `ai.py` — OpenRouter API call (Mistral)
+  - `emotions.py` — keyword-based emotion detection
+  - `importance.py` — message importance scoring (1–10)
+  - `patterns.py` — recurring topic and emotion pattern analysis
+  - `retrieval.py` — smart context retrieval with multi-factor scoring
+  - `summaries.py` — live summary generation
+  - `topics.py` — topic tagging (AI, coding, project, future, etc.)
+  - `memory.json` — persistent conversation store
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **File-based memory** — `memory.json` stores all messages with metadata. Simple and portable; easy to inspect and edit manually.
+- **Scored retrieval** — context selection uses a weighted scoring model (topic overlap 0–25 pts, importance ×3, recency 0–15, exact match +40, recency boost +10) instead of naive last-N messages.
+- **Intent routing** — `detect_intent()` distinguishes IDENTITY queries (personal/emotional) from SESSION queries (factual), applying a hard filter on the latter to avoid noisy context.
+- **No embeddings** — everything is keyword-based. Zero external dependencies beyond `requests`. Fast and interpretable.
+- **Replit AI Integrations for OpenRouter** — `AI_INTEGRATIONS_OPENROUTER_BASE_URL` and `AI_INTEGRATIONS_OPENROUTER_API_KEY` are auto-provisioned; no user API key required.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+A CLI chatbot backed by a multi-dimensional memory system. The AI (Mistral via OpenRouter) receives a continuity summary of recurring topics and emotional patterns alongside the most relevant retrieved messages, producing responses that feel contextually aware over long time horizons.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Project name: Sarvix (referenced in topics.py and memory.json — appears to be the user's startup/build project)
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The workflow is set to `autoStart: false` — start it manually from the Shell tab
+- `memory.json` path is resolved relative to `memory.py` so the file always lands in `continuity_engine/` regardless of working directory
+- Run from within `continuity_engine/` or via the workflow command which `cd`s there first
 
 ## Pointers
 
