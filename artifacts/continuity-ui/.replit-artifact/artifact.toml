@@ -1,0 +1,22 @@
+kind = "web"
+  previewPath = "/"
+  title = "Continuity Engine"
+  version = "1.0.0"
+  id = "artifacts/continuity-ui"
+  router = "path"
+
+  [[integratedSkills]]
+  name = "react-vite"
+  version = "1.0.0"
+
+  [[services]]
+  name = "web"
+  paths = [ "/" ]
+  localPort = 23210
+
+  [services.development]
+  run = "python3 /home/runner/workspace/continuity_engine/app.py"
+
+  [services.env]
+  PORT = "23210"
+  

@@ -1,0 +1,13 @@
+kind = "web"
+  previewPath = "/"
+  title = "Continuity Engine"
+  version = "1.0.0"
+
+  [[services]]
+  localPort = 3000
+  name = "Continuity Engine"
+  paths = ["/"]
+
+  [services.development]
+  run = "cd continuity_engine && PORT=3000 python3 app.py"
+  
