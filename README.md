@@ -112,10 +112,18 @@ Scored extras from older history: up to **8**
 
 Default model chain (tries in order, falls back automatically):
 
-1. `anthropic/claude-3-haiku-20240307`
-2. `openai/gpt-4o-mini`
+1. `anthropic/claude-3-haiku-20240307` — Claude 3 Haiku
+2. `openai/gpt-4o-mini` — GPT-4o Mini
+3. `mistralai/mistral-small-2603` — Mistral Small
+4. `mistralai/mistral-7b-instruct:free` — Mistral 7B *(free)*
+5. `meta-llama/llama-3.1-8b-instruct:free` — Llama 3.1 8B *(free)*
+6. `google/gemma-3-12b-it:free` — Gemma 3 12B *(free)*
+7. `deepseek/deepseek-r1:free` — DeepSeek R1 *(free)*
 
-Any OpenRouter model ID can be passed as `preferred_model` to `call_ai()`.
+Any OpenRouter model ID can be passed via the `--model` flag:
+```bash
+python cogen.py --model "deepseek/deepseek-r1:free"
+```
 
 ---
 
