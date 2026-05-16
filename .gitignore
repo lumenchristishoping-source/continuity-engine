@@ -47,3 +47,26 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+
+# User memory data — never commit personal conversation history
+continuity_engine/memory.db
+continuity_engine/memory.db-shm
+continuity_engine/memory.db-wal
+continuity_engine/memory.json
+continuity_engine/memory.json.migrated
+
+# UI artifact — not part of the distributed engine
+artifacts/continuity-ui/
+
+# Secrets / env
+.env
+.env.*
+
+# Downloads
+*.zip

@@ -5,7 +5,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from memory import save_message, load_memory
+from memory import save_message, load_memory, clear_memory
 from retrieval import get_context
 from topics import detect_topics
 from emotions import detect_emotion
@@ -46,12 +46,12 @@ def chat():
     context_items = []
     for msg in context:
         context_items.append({
-            "role":      msg["role"],
+            "role":       msg["role"],
             "importance": msg.get("importance", 1),
-            "emotion":   msg.get("emotion", "neutral"),
-            "topics":    msg.get("topics", []),
-            "timestamp": msg.get("timestamp", ""),
-            "content":   msg["content"]
+            "emotion":    msg.get("emotion", "neutral"),
+            "topics":     msg.get("topics", []),
+            "timestamp":  msg.get("timestamp", ""),
+            "content":    msg["content"]
         })
 
     t0 = time.time()
@@ -81,10 +81,8 @@ def chat():
 
 
 @app.route("/clear", methods=["POST"])
-def clear_memory():
-    memory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory.json")
-    with open(memory_path, "w") as f:
-        f.write("[]")
+def clear():
+    clear_memory()
     return jsonify({"success": True})
 
 
