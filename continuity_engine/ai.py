@@ -5,12 +5,21 @@ import requests
 MODELS = [
     "anthropic/claude-3-haiku-20240307",
     "openai/gpt-4o-mini",
+    "mistralai/mistral-small-2603",
+    "mistralai/mistral-7b-instruct:free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "google/gemma-3-12b-it:free",
+    "deepseek/deepseek-r1:free",
 ]
 
 MODEL_LABELS = {
-    "anthropic/claude-3-haiku-20240307": "Claude 3 Haiku",
-    "openai/gpt-4o-mini":               "GPT-4o mini",
-    "mistralai/mistral-small-2603":      "Mistral Small",
+    "anthropic/claude-3-haiku-20240307":     "Claude 3 Haiku",
+    "openai/gpt-4o-mini":                    "GPT-4o mini",
+    "mistralai/mistral-small-2603":          "Mistral Small",
+    "mistralai/mistral-7b-instruct:free":    "Mistral 7B Free",
+    "meta-llama/llama-3.1-8b-instruct:free": "Llama 3.1 8B Free",
+    "google/gemma-3-12b-it:free":            "Gemma 3 12B Free",
+    "deepseek/deepseek-r1:free":             "DeepSeek R1 Free",
 }
 
 
