@@ -148,3 +148,5 @@ On Replit these are auto-provisioned. Anywhere else, export them manually.
 ## License
 
 MIT
+
+"Built by a 16 year old who got tired of AI forgetting him."
