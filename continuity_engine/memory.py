@@ -103,6 +103,8 @@ def load_memory():
     return [_row_to_dict(r) for r in rows]
 
 
+from conflict import detect_conflict
+
 def save_message(role, content):
     """Analyse and persist a single message."""
     memory     = load_memory()
@@ -111,12 +113,16 @@ def save_message(role, content):
     emotion    = detect_emotion(content)
     timestamp  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    is_conflict, _ = detect_conflict(content, memory)
+    from belief import calculate_belief_score
+    belief_score = calculate_belief_score(content, memory)
+
     with _get_conn() as conn:
         conn.execute(
             """INSERT INTO messages
-               (role, content, importance, emotion, topics, timestamp)
-               VALUES (?,?,?,?,?,?)""",
-            (role, content, importance, emotion, json.dumps(topics), timestamp),
+               (role, content, importance, emotion, topics, timestamp, conflict, belief_score)
+               VALUES (?,?,?,?,?,?,?,?)""",
+            (role, content, importance, emotion, json.dumps(topics), timestamp, int(is_conflict), belief_score),
         )
         conn.commit()
 

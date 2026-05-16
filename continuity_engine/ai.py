@@ -56,6 +56,7 @@ def call_ai(user_message, retrieved_context, continuity_summary, preferred_model
 {memory_block}
 
 STRICT RULES — never break these:
+0. If memory contains conflict=1 entries, prefer the most recent non-conflicted truth. Do not present both as equally valid — pick the strongest recent signal.
 1. Only use facts that appear in the conversation history above. Never invent or assume anything about the user.
 2. If memory is empty, respond naturally to what the user just said — do not pretend to know them.
 3. Treat the conversation history as real memory: if the user told you their name, you know it; if they named you, that is your name.

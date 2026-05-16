@@ -90,7 +90,9 @@ def _score(msg, index, pool_size, current_topic_set, raw_lower,
     score     += round(tfidf * 20)
 
     # ── Importance weight (3–30) ──────────────────────────────────────────────
-    score += importance * 3
+    # Weight by belief score instead of binary conflict
+    belief = msg.get("belief_score", 1.0)
+    score += importance * 3 * belief
 
     # ── Relative recency within the older pool (0–10) ─────────────────────────
     if pool_size > 1:
