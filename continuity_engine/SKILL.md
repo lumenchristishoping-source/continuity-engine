@@ -285,6 +285,90 @@ Recent window always included: last `15` messages
 
 ---
 
+## Tool-use integration (AI calls memory itself)
+
+For models that support function calling (Claude, GPT-4, Gemini, any OpenRouter model
+with tool use), you can give the AI direct access to memory — it decides when to recall,
+save, or summarise without you pre-building anything.
+
+### Setup
+
+```python
+import json
+from continuity_engine.tools import TOOL_DEFINITIONS, handle_tool_call
+
+# Pass TOOL_DEFINITIONS to your model call
+response = client.chat.completions.create(
+    model="anthropic/claude-3-haiku-20240307",
+    messages=messages,
+    tools=TOOL_DEFINITIONS,       # ← inject the tool schemas
+    tool_choice="auto"
+)
+
+# Dispatch any tool calls the model makes
+if response.choices[0].message.tool_calls:
+    for tool_call in response.choices[0].message.tool_calls:
+        result = handle_tool_call(
+            tool_call.function.name,
+            json.loads(tool_call.function.arguments)
+        )
+        messages.append({
+            "role":         "tool",
+            "tool_call_id": tool_call.id,
+            "content":      result
+        })
+    # Send tool results back for the final response
+    final = client.chat.completions.create(model=..., messages=messages)
+```
+
+### Available tools
+
+| Tool name         | When the AI calls it                                              |
+|-------------------|-------------------------------------------------------------------|
+| `memory_retrieve` | User references something from the past, or context would help   |
+| `memory_summary`  | User asks how they've been doing or what they usually talk about |
+| `memory_save`     | User shares something important that should persist long-term    |
+| `memory_clear`    | User explicitly asks to forget everything                        |
+
+All four tools are defined in `tools.py` with full OpenAI-compatible JSON schemas.
+`handle_tool_call(name, arguments)` dispatches any tool call to the right function
+and returns a string result ready to send back as a tool message.
+
+---
+
+## CLI usage (cogen)
+
+`cogen.py` is a ready-to-run CLI that handles everything — retrieve, inject, call, save.
+
+```bash
+# Single reply
+python cogen.py "what should I work on today?"
+
+# Interactive session
+python cogen.py
+
+# Show memory patterns
+python cogen.py --summary
+
+# Clear all memory
+python cogen.py --clear
+
+# Use a specific model
+python cogen.py --model openai/gpt-4o-mini "hello"
+
+# Show recalled context alongside the reply
+python cogen.py --verbose "that project I was stressed about"
+```
+
+Add a shell alias to use it from anywhere:
+
+```bash
+# In ~/.bashrc or ~/.zshrc
+alias cogen="python /path/to/continuity_engine/cogen.py"
+```
+
+---
+
 ## Quick start (standalone Python)
 
 ```bash

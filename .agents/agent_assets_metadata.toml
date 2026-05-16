@@ -6,3 +6,9 @@ id = "8Q9IdOoua4km5off76bbC"
 uri = "file://continuity_engine_download.zip"
 type = "unspecified"
 title = "Continuity Engine + UI — Download"
+
+[[outputs]]
+id = "2SLJeh_nYJDGT44Z66-gF"
+uri = "file://continuity_engine_v1.zip"
+type = "unspecified"
+title = "Continuity Engine v1 — All Engine Files"
