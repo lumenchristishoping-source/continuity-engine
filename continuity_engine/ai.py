@@ -1,5 +1,4 @@
 import os
-import time
 import requests
 
 
@@ -8,10 +7,24 @@ MODELS = [
     "openai/gpt-4o-mini",
 ]
 
+MODEL_LABELS = {
+    "anthropic/claude-3-haiku-20240307": "Claude 3 Haiku",
+    "openai/gpt-4o-mini":               "GPT-4o mini",
+    "mistralai/mistral-small-2603":      "Mistral Small",
+}
 
-def call_ai(user_message, retrieved_context, continuity_summary):
+
+def call_ai(user_message, retrieved_context, continuity_summary, preferred_model=None):
     base_url = os.environ.get("AI_INTEGRATIONS_OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
     api_key  = os.environ.get("AI_INTEGRATIONS_OPENROUTER_API_KEY", "")
+
+    # Build ordered model list: user-chosen first, then fallbacks
+    if preferred_model and preferred_model not in MODELS:
+        order = [preferred_model] + MODELS
+    elif preferred_model:
+        order = [preferred_model] + [m for m in MODELS if m != preferred_model]
+    else:
+        order = MODELS
 
     has_memory = bool(retrieved_context)
 
@@ -43,7 +56,7 @@ STRICT RULES — never break these:
 7. No theatrical, dramatic, or overly emotional language."""
 
     last_err = None
-    for model in MODELS:
+    for model in order:
         try:
             resp = requests.post(
                 f"{base_url}/chat/completions",

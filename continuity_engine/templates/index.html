@@ -570,6 +570,52 @@
     .empty-title { font-size: 15px; font-weight: 600; color: var(--text-muted); }
     .empty-sub { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 300; text-align: center; }
 
+    /* ── MODEL SELECTOR ── */
+    .model-section {
+      padding: 14px 20px 0;
+    }
+
+    .model-select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b80'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      transition: border-color 0.2s;
+    }
+
+    .model-select:hover  { border-color: var(--accent); color: var(--text); }
+    .model-select:focus  { border-color: var(--accent); }
+    .model-select option { background: #16161f; color: var(--text); }
+
+    .model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 5px;
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 0.3px;
+    }
+
+    .model-badge-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #4aaa6a;
+    }
+
     /* ── RECALL BAR ── */
     .recall-bar {
       margin-top: 5px;
@@ -732,6 +778,19 @@
     </div>
 
     <div class="sidebar-body">
+      <div class="model-section">
+        <div class="section-label">Model</div>
+        <select class="model-select" id="model-select">
+          <option value="anthropic/claude-3-haiku-20240307">Claude 3 Haiku</option>
+          <option value="openai/gpt-4o-mini">GPT-4o mini</option>
+          <option value="mistralai/mistral-small-2603">Mistral Small</option>
+        </select>
+        <div class="model-badge">
+          <div class="model-badge-dot"></div>
+          <span id="model-badge-text">via OpenRouter</span>
+        </div>
+      </div>
+
       <div class="sidebar-section">
         <div class="section-label">Memory Summary</div>
         <div id="summary-container">
@@ -812,6 +871,8 @@
   const clearBtn     = document.getElementById('clear-btn');
   const newChatBtn   = document.getElementById('new-chat-btn');
   const overlay      = document.getElementById('sidebar-overlay');
+  const modelSelect  = document.getElementById('model-select');
+  const modelBadge   = document.getElementById('model-badge-text');
 
   let isLoading = false;
   const isMobile = () => window.innerWidth <= 640;
@@ -1082,7 +1143,7 @@
       const res  = await fetch('/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ message: text })
+        body:    JSON.stringify({ message: text, model: modelSelect.value })
       });
 
       if (!res.ok) throw new Error('Server error ' + res.status);

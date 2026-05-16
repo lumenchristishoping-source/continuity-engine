@@ -22,13 +22,14 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
+    data       = request.json
     user_input = data.get("message", "").strip()
+    model      = data.get("model", None)
 
     if not user_input:
         return jsonify({"error": "Empty message"}), 400
 
-    current_topics = detect_topics(user_input)
+    current_topics  = detect_topics(user_input)
     current_emotion = detect_emotion(user_input)
 
     save_message("user", user_input)
@@ -39,23 +40,23 @@ def chat():
         raw_input=user_input
     )
 
-    memory = load_memory()
+    memory  = load_memory()
     summary = generate_summary(memory)
 
     context_items = []
     for msg in context:
         context_items.append({
-            "role": msg["role"],
+            "role":      msg["role"],
             "importance": msg.get("importance", 1),
-            "emotion": msg.get("emotion", "neutral"),
-            "topics": msg.get("topics", []),
+            "emotion":   msg.get("emotion", "neutral"),
+            "topics":    msg.get("topics", []),
             "timestamp": msg.get("timestamp", ""),
-            "content": msg["content"]
+            "content":   msg["content"]
         })
 
     t0 = time.time()
     try:
-        ai_response = call_ai(user_input, context, summary)
+        ai_response = call_ai(user_input, context, summary, preferred_model=model)
     except Exception as e:
         ai_response = f"[AI error: {e}]"
     recall_ms = round((time.time() - t0) * 1000)
@@ -69,13 +70,13 @@ def chat():
     ]
 
     return jsonify({
-        "response":     ai_response,
-        "context":      context_items,
-        "summary":      summary_lines,
-        "emotion":      current_emotion,
-        "topics":       current_topics,
-        "memory_used":  bool(context_items),
-        "recall_ms":    recall_ms,
+        "response":    ai_response,
+        "context":     context_items,
+        "summary":     summary_lines,
+        "emotion":     current_emotion,
+        "topics":      current_topics,
+        "memory_used": bool(context_items),
+        "recall_ms":   recall_ms,
     })
 
 
